@@ -5,14 +5,13 @@ import org.opencv.core.Point;
 import java.util.ArrayList;
 
 public class MathFunction {
-
     /**
      * Makes sure the range of the angle is within the limits of 180, -180 degrees
      * @param angle
      * @return
      */
-    public static double AngleWrap(double angle) {
-        while (angle <  -180) {
+    public static double calculateAngleUnwrap(double angle) {
+        while (angle < -180) {
             angle += 360;
         }
         while (angle > 180) {
@@ -30,7 +29,7 @@ public class MathFunction {
      * @param end
      * @return
      */
-    public static Point CircleIntersections(Point state, double radius,
+    public static Point calculateCircleIntersection(Point state, double radius,
                                                         Point start, Point end) {
 
         double dx = end.x - start.x;
@@ -50,7 +49,6 @@ public class MathFunction {
 
         // If discriminant is negative, no intersection; emergency route
         if (discriminant < 0) {
-            //TODO: make emergency route re-localisation
             return null;
         } else {
             // Calculate the two possible values of t where intersections occur
@@ -71,29 +69,27 @@ public class MathFunction {
     }
 
     /**
-     *
-     * @param pathPoints
-     * @param robotLocation
-     * @param radius
+     * Stopping condition for the robot's position
+     * @param currentPoint
+     * @param targetPoint
      * @return
      */
-    public static WayPoint getFollowPathWayPoint(ArrayList<WayPoint> pathPoints,
-                                                 Point robotLocation, double radius) {
-        WayPoint followPoint = new WayPoint(pathPoints.get(0));
+    public static boolean positionEqualsThreshold(Point currentPoint, WayPoint targetPoint) {
+        if (currentPoint.x <= targetPoint.x + targetPoint.threshold && currentPoint.x >= targetPoint.x - targetPoint.threshold)
+            if (currentPoint.y <= targetPoint.y + targetPoint.threshold && currentPoint.y >= targetPoint.y - targetPoint.threshold)
+                return true;
+        return false;
+    }
 
-        for(int i = 0; i < pathPoints.size() - 1; ++i) {
-            WayPoint start = pathPoints.get(i);
-            WayPoint end = pathPoints.get(i + 1);
-
-            Point intersection = CircleIntersections(
-                robotLocation, radius,
-                start.toPoint(), end.toPoint()
-            );
-
-            followPoint.setPoint(intersection);
-
-        }
-
-        return followPoint;
+    /**
+     * Stopping condition for the robot's rotation
+     * @param currentHeading
+     * @param targetPoint
+     * @return
+     */
+    public static boolean rotationEqualsThreshold(double currentHeading, WayPoint targetPoint) {
+        if (currentHeading <= targetPoint.t + targetPoint.threshold && currentHeading >= targetPoint.t - targetPoint.threshold)
+                return true;
+        return false;
     }
 }

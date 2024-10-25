@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.inPerTick_Calculation;
 import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.parYTicks;
 import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.perpXTicks;
 
@@ -30,6 +31,8 @@ public final class TwoDeadWheelLocalizer {
 
     public final Encoder par, perp;
     public final IMU imu;
+    public double currentVelocity;
+    public double currentRotationalVelocity;
 
     private int lastParPos, lastPerpPos;
     private Rotation2d lastHeading;
@@ -39,7 +42,7 @@ public final class TwoDeadWheelLocalizer {
     private double lastRawHeadingVel, headingVelOffset;
     private boolean initialized;
 
-    public TwoDeadWheelLocalizer(HardwareMap hardwareMap, double inPerTick) {
+    public TwoDeadWheelLocalizer(HardwareMap hardwareMap) {
         // TODO: make sure your config has **motors** with these names (or change them)
         //   the encoders should be plugged into the slot matching the named motor
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
@@ -60,26 +63,36 @@ public final class TwoDeadWheelLocalizer {
 
         imu.initialize(imu_parameters);
 
-        this.inPerTick = inPerTick;
+        this.inPerTick = inPerTick_Calculation();
+    }
+
+    public double getCurrentVelocity() {
+        return currentVelocity;
+    }
+
+    public double getCurrentRotationalVelocity(){
+        return currentRotationalVelocity;
     }
 
     public Twist2dDual<Time> update() {
         PositionVelocityPair parPosVel = par.getPositionAndVelocity();
         PositionVelocityPair perpPosVel = perp.getPositionAndVelocity();
+        currentVelocity = Math.hypot(parPosVel.rawVelocity, perpPosVel.rawVelocity);
 
         YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
         AngularVelocity angularVelocityDegrees = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
-//        AngularVelocity angularVelocity = new AngularVelocity(
-//                UnnormalizedAngleUnit.RADIANS,
-//                (float) Math.toRadians(angularVelocityDegrees.xRotationRate),
-//                (float) Math.toRadians(angularVelocityDegrees.yRotationRate),
-//                (float) Math.toRadians(angularVelocityDegrees.zRotationRate),
-//                angularVelocityDegrees.acquisitionTime
-//        );
+        currentRotationalVelocity = angularVelocityDegrees.zRotationRate;
+        AngularVelocity angularVelocity = new AngularVelocity(
+                UnnormalizedAngleUnit.RADIANS,
+                (float) Math.toRadians(angularVelocityDegrees.xRotationRate),
+                (float) Math.toRadians(angularVelocityDegrees.yRotationRate),
+                (float) Math.toRadians(angularVelocityDegrees.zRotationRate),
+                angularVelocityDegrees.acquisitionTime
+        );
 
         Rotation2d heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS));
 
-        double rawHeadingVel = angularVelocityDegrees.zRotationRate;
+        double rawHeadingVel = angularVelocity.zRotationRate;
         if (Math.abs(rawHeadingVel - lastRawHeadingVel) > Math.PI) {
             headingVelOffset -= Math.signum(rawHeadingVel) * 2 * Math.PI;
         }
