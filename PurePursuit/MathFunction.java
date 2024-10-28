@@ -5,6 +5,7 @@ import org.opencv.core.Point;
 import java.util.ArrayList;
 
 public class MathFunction {
+
     /**
      * Makes sure the range of the angle is within the limits of 180, -180 degrees
      * @param angle
@@ -75,8 +76,8 @@ public class MathFunction {
      * @return
      */
     public static boolean positionEqualsThreshold(Point currentPoint, WayPoint targetPoint) {
-        if (currentPoint.x <= targetPoint.x + targetPoint.threshold && currentPoint.x >= targetPoint.x - targetPoint.threshold)
-            if (currentPoint.y <= targetPoint.y + targetPoint.threshold && currentPoint.y >= targetPoint.y - targetPoint.threshold)
+        if (currentPoint.x <= targetPoint.pose[0] + targetPoint.threshold[0] && currentPoint.x >= targetPoint.pose[0] - targetPoint.threshold[0])
+            if (currentPoint.y <= targetPoint.pose[1] + targetPoint.threshold[0] && currentPoint.y >= targetPoint.pose[1] - targetPoint.threshold[0])
                 return true;
         return false;
     }
@@ -88,7 +89,7 @@ public class MathFunction {
      * @return
      */
     public static boolean rotationEqualsThreshold(double currentHeading, WayPoint targetPoint) {
-        if (currentHeading <= targetPoint.t + targetPoint.threshold && currentHeading >= targetPoint.t - targetPoint.threshold)
+        if (currentHeading <= targetPoint.pose[2] + targetPoint.threshold[1] && currentHeading >= targetPoint.pose[2] - targetPoint.threshold[1])
                 return true;
         return false;
     }

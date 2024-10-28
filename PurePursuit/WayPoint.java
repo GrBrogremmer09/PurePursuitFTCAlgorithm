@@ -4,28 +4,32 @@ import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants
 import org.opencv.core.Point;
 
 public class WayPoint {
-    public enum WaypointType{
-        END,
-        DEFAULT,
-    }
 
-    public double x, y, t, threshold;
+    enum WaypointType{END, DEFAULT}
+
+    public double[] pose = new double[3];
+    public double[] threshold = new double[2];
+
     public WaypointType type;
 
     public static class WaypointBuilder {
-        private double x, y, t, threshold, min_radius, max_radius,
-                        max_vel, max_accel, max_rot_vel, max_rot_accel;
+        private double
+            min_radius, max_radius,
+            max_vel, max_accel, max_rot_vel, max_rot_accel;
+
+        private double[] threshold = new double[2];
+        private double[] pose = new double[3];
 
         private WaypointType type;
 
-        public WaypointBuilder(double x, double y, double t, WaypointType type) {
-            this.x = x;
-            this.y = y;
-            this.t = t;
+        public WaypointBuilder(double[] pose, WaypointType type) {
+            this.pose[0] = pose[0];
+            this.pose[1] = pose[1];
+            this.pose[2] = pose[2];
             this.type = type;
         }
 
-        public WaypointBuilder threshold(double threshold) {
+        public WaypointBuilder threshold(double[] threshold) {
             this.threshold = threshold;
             return this;
         }
@@ -66,10 +70,10 @@ public class WayPoint {
     }
 
     private WayPoint(WaypointBuilder builder) {
-        this.x = builder.x;
-        this.y = builder.y;
+        this.pose[0] = builder.pose[0];
+        this.pose[1] = builder.pose[1];
         this.type = builder.type;
-        this.t = builder.t;
+        this.pose[2] = builder.pose[2];
         this.threshold = builder.threshold;
         RobotConstants.minRadiusRange = builder.min_radius;
         RobotConstants.maxRadiusRange = builder.max_radius;
@@ -80,19 +84,19 @@ public class WayPoint {
     }
 
     public WayPoint(WayPoint point) {
-        x = point.x;
-        y = point.y;
+        pose[0] = point.pose[0];
+        pose[1] = point.pose[1];
         type = point.type;
-        t = point.t;
+        pose[2] = point.pose[2];
         threshold = point.threshold;
     }
 
     public Point toPoint() {
-        return new Point(x, y);
+        return new Point(pose[0], pose[1]);
     }
 
     public void setPoint (Point point) {
-        x = point.x;
-        y = point.y;
+        pose[0] = point.x;
+        pose[1] = point.y;
     }
 }

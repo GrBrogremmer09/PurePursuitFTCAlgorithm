@@ -37,16 +37,18 @@ public class RobotMovement {
     public static ElapsedTime time;
     public static double previousTime;
 
-    public static Pose2d pose = new Pose2d(0, 0, 0);
+    public static Pose2d pose = new Pose2d(0,0,0);
 
-    public static volatile double positionTargetVelocity;
-    public static volatile double rotationalTargetVelocity;
-    public static volatile double currentRadius;
+    public static volatile double
+        positionTargetVelocity,
+        rotationalTargetVelocity,
+        currentRadius;
 
-    public static DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-    public static DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-    public static DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-    public static DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+    public static DcMotor
+        frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor"),
+        backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor"),
+        frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor"),
+        backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
 
     public RobotMovement(HardwareMap hm) {
         localizer = new TwoDeadWheelLocalizer(hm);
@@ -58,6 +60,10 @@ public class RobotMovement {
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
+    /**
+     * The logic and final function to run the pure pursuit algorithm
+     * @param points
+     */
     public static void followPath(ArrayList<WayPoint> points) {
 
         boolean isFinished = false;
@@ -66,8 +72,10 @@ public class RobotMovement {
 
         WayPoint followPoint = new WayPoint(points.get(0));
 
-        WayPoint start = new WayPoint.WaypointBuilder(0, 0,0, WayPoint.WaypointType.DEFAULT).build();
-        WayPoint end = new WayPoint.WaypointBuilder(0, 0,0, WayPoint.WaypointType.DEFAULT).build();
+        WayPoint start =
+            new WayPoint.WaypointBuilder(new double[]{0,0,0}, WayPoint.WaypointType.DEFAULT).build();
+        WayPoint end =
+            new WayPoint.WaypointBuilder(new double[]{0,0,0}, WayPoint.WaypointType.DEFAULT).build();
 
         while(!isFinished) {
 
@@ -81,7 +89,7 @@ public class RobotMovement {
                 end = points.get(i + 1);
 
                 if (end.type == WayPoint.WaypointType.END) {
-                    if (hypot(end.x - pose.position.x, end.y - pose.position.y) <= currentRadius) {
+                    if (hypot(end.pose[0] - pose.position.x, end.pose[1] - pose.position.y) <= currentRadius) {
                         followPoint = end;
                         break;
                     }
@@ -90,8 +98,8 @@ public class RobotMovement {
                 Point currentPoint = calculateCircleIntersection(
                     new Point(pose.position.x, pose.position.y),
                     currentRadius,
-                    new Point(start.x, start.y),
-                    new Point(end.x, end.y)
+                    new Point(start.pose[0], start.pose[1]),
+                    new Point(end.pose[0], end.pose[1])
                 );
 
                 if (currentPoint != null){
@@ -103,7 +111,7 @@ public class RobotMovement {
             positionMotionProfiling(end);
             rotationMotionProfiling(end);
 
-            motorsPower = goToPoint(followPoint.x, followPoint.y, followPoint.t);
+            motorsPower = goToPoint(followPoint.pose[0], followPoint.pose[1], followPoint.pose[2]);
 
             if (positionEqualsThreshold(new Point(pose.position.x, pose.position.y), end) &&
                 rotationEqualsThreshold(pose.heading.toDouble(), end)) isFinished = true;
@@ -159,8 +167,8 @@ public class RobotMovement {
         }
 
         if (endPoint.type == WayPoint.WaypointType.END) {
-            double distance = Math.hypot(endPoint.x - robotPosition.x,
-                                         endPoint.y - robotPosition.y);
+            double distance = Math.hypot(endPoint.pose[0] - robotPosition.x,
+                                         endPoint.pose[1] - robotPosition.y);
 
             if (distance <= (Math.pow(positionTargetVelocity, 2) / (2 * maxAcceleration))) { // Decel condition
                 positionTargetVelocity = (
@@ -182,7 +190,7 @@ public class RobotMovement {
         double currentVelocity = getCurrentRotationalVelocity();
         double currentTime = time.time();
 
-        double distance = calculateAngleUnwrap(endPoint.t - pose.heading.toDouble());
+        double distance = calculateAngleUnwrap(endPoint.pose[2] - pose.heading.toDouble());
         int directionMultiplier = 1;
 
         if (distance < 0) {
