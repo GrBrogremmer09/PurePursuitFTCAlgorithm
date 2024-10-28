@@ -37,7 +37,7 @@ public class RobotMovement {
     public static ElapsedTime time;
     public static double previousTime;
 
-    public static Pose2d pose = new Pose2d(0,0,0);
+    public static volatile Pose2d pose = new Pose2d(0,0,0);
 
     public static volatile double
         positionTargetVelocity,
