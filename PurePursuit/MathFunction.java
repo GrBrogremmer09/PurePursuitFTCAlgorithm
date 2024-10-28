@@ -59,7 +59,7 @@ public class MathFunction {
             double t = Math.max(t1, t2);
 
             if (t < 0.0 || t > 1.0){
-                //TODO: make emergency route re-localisation
+                return null;
             }
 
             double lx = start.x + t * dx;

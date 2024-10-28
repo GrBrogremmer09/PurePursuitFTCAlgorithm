@@ -1,12 +1,6 @@
 package org.firstinspires.ftc.teamcode.PurePursuit;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxAcceleration;
-import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxRadiusRange;
-import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxRotationalAcceleration;
-import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxRotationalVelocity;
-import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxVelocity;
-import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.minRadiusRange;
 import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.radiusMutliplier;
 import static org.firstinspires.ftc.teamcode.PurePursuit.MathFunction.calculateAngleUnwrap;
 import static org.firstinspires.ftc.teamcode.PurePursuit.MathFunction.calculateCircleIntersection;
@@ -16,10 +10,7 @@ import static org.firstinspires.ftc.teamcode.PurePursuit.MathFunction.rotationEq
 import static java.lang.Math.abs;
 import static java.lang.Math.hypot;
 
-import androidx.annotation.NonNull;
-
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -35,14 +26,20 @@ public class RobotMovement {
 
     public static TwoDeadWheelLocalizer localizer;
     public static ElapsedTime time;
-    public static double previousTime;
 
     public static volatile Pose2d pose = new Pose2d(0,0,0);
 
-    public static volatile double
+    public static double
+        previousTime,
         positionTargetVelocity,
         rotationalTargetVelocity,
-        currentRadius;
+        currentRadius,
+        currentMaxVelocity,
+        currentMaxAcceleration,
+        currentMaxRotationalVelocity,
+        currentMaxRotationalAcceleration,
+        currentMinRadiusRange,
+        currentMaxRadiusRange;
 
     public static DcMotor
         frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor"),
@@ -78,15 +75,24 @@ public class RobotMovement {
             new WayPoint.WaypointBuilder(new double[]{0,0,0}, WayPoint.WaypointType.DEFAULT).build();
 
         while(!isFinished) {
+            time.startTime();
 
             pose = pose.plus(localizer.update().value());
             pose = new Pose2d(pose.component1(),
                               Math.toDegrees(pose.heading.toDouble()));
-            currentRadius = calculateRadius(getCurrentVelocity());
 
             for(int i = points.size() - 1; i >= 0; --i) {
                 start = points.get(i);
                 end = points.get(i + 1);
+
+                currentMaxVelocity = end.max_vel;
+                currentMaxAcceleration = end.max_accel;
+                currentMaxRotationalVelocity = end.max_rot_vel;
+                currentMaxRotationalAcceleration = end.max_rot_accel;
+                currentMinRadiusRange = end.min_radius;
+                currentMaxRadiusRange = end.max_radius;
+
+                currentRadius = calculateRadius(getCurrentVelocity());
 
                 if (end.type == WayPoint.WaypointType.END) {
                     if (hypot(end.pose[0] - pose.position.x, end.pose[1] - pose.position.y) <= currentRadius) {
@@ -105,6 +111,8 @@ public class RobotMovement {
                 if (currentPoint != null){
                     followPoint.setPoint(currentPoint);
                     break;
+                } else {
+                    currentRadius += currentRadius/10;
                 }
             }
 
@@ -158,21 +166,21 @@ public class RobotMovement {
         double currentVelocity = getCurrentVelocity();
         double currentTime = time.time();
 
-        if (maxVelocity > currentVelocity) { // Acceleration condition
+        if (currentMaxVelocity > currentVelocity) { // Acceleration condition
             positionTargetVelocity = (
-                currentVelocity + maxAcceleration * (currentTime - previousTime)
+                currentVelocity + currentMaxAcceleration * (currentTime - previousTime)
             );
         } else {
-            positionTargetVelocity = maxVelocity; // Cruising condition
+            positionTargetVelocity = currentMaxVelocity; // Cruising condition
         }
 
         if (endPoint.type == WayPoint.WaypointType.END) {
             double distance = Math.hypot(endPoint.pose[0] - robotPosition.x,
                                          endPoint.pose[1] - robotPosition.y);
 
-            if (distance <= (Math.pow(positionTargetVelocity, 2) / (2 * maxAcceleration))) { // Decel condition
+            if (distance <= (Math.pow(positionTargetVelocity, 2) / (2 * currentMaxAcceleration))) { // Decel condition
                 positionTargetVelocity = (
-                    currentVelocity - maxAcceleration * (currentTime - previousTime)
+                    currentVelocity - currentMaxAcceleration * (currentTime - previousTime)
                 );
             }
         }
@@ -197,18 +205,18 @@ public class RobotMovement {
             directionMultiplier = -1;
         }
 
-        if (maxRotationalVelocity > abs(currentVelocity)) { // Acceleration condition
+        if (currentMaxRotationalVelocity > abs(currentVelocity)) { // Acceleration condition
             rotationalTargetVelocity = (
-                currentVelocity + maxRotationalAcceleration * (currentTime - previousTime)
+                currentVelocity + currentMaxRotationalAcceleration * (currentTime - previousTime)
             );
         } else {
-            rotationalTargetVelocity = maxRotationalVelocity; // Cruising condition
+            rotationalTargetVelocity = currentMaxRotationalVelocity; // Cruising condition
         }
 
         if (endPoint.type == WayPoint.WaypointType.END) {
-            if (distance <= (Math.pow(rotationalTargetVelocity, 2) / (2 * maxRotationalAcceleration))) { // Decel condition
+            if (distance <= (Math.pow(rotationalTargetVelocity, 2) / (2 * currentMaxRotationalAcceleration))) { // Decel condition
                 rotationalTargetVelocity =
-                    currentVelocity - directionMultiplier * maxRotationalAcceleration * (currentTime - previousTime);
+                    currentVelocity - directionMultiplier * currentMaxRotationalAcceleration * (currentTime - previousTime);
             }
         }
 
@@ -223,8 +231,8 @@ public class RobotMovement {
      * @return radius
      */
     public static double calculateRadius(double currentVelocity) {
-        double radius = minRadiusRange + (currentVelocity * radiusMutliplier);
-        radius = Range.clip(radius, minRadiusRange, maxRadiusRange);
+        double radius = currentMinRadiusRange + (currentVelocity * radiusMutliplier);
+        radius = Range.clip(radius, currentMinRadiusRange, currentMaxRadiusRange);
 
         return radius;
     }

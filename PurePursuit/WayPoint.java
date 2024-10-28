@@ -1,6 +1,12 @@
 package org.firstinspires.ftc.teamcode.PurePursuit;
 
-import org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants;
+import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxAcceleration;
+import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxRotationalAcceleration;
+import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxRotationalVelocity;
+import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.minRadiusRange;
+import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxRadiusRange;
+import static org.firstinspires.ftc.teamcode.PurePursuit.HardwareRelated.RobotConstants.maxVelocity;
+
 import org.opencv.core.Point;
 
 public class WayPoint {
@@ -9,6 +15,13 @@ public class WayPoint {
 
     public double[] pose = new double[3];
     public double[] threshold = new double[2];
+    public double
+        min_radius = minRadiusRange,
+        max_radius = maxRadiusRange,
+        max_vel = maxVelocity,
+        max_accel = maxAcceleration,
+        max_rot_vel = maxRotationalVelocity,
+        max_rot_accel = maxRotationalAcceleration;
 
     public WaypointType type;
 
@@ -75,12 +88,12 @@ public class WayPoint {
         this.type = builder.type;
         this.pose[2] = builder.pose[2];
         this.threshold = builder.threshold;
-        RobotConstants.minRadiusRange = builder.min_radius;
-        RobotConstants.maxRadiusRange = builder.max_radius;
-        RobotConstants.maxVelocity = builder.max_vel;
-        RobotConstants.maxAcceleration = builder.max_accel;
-        RobotConstants.maxRotationalVelocity = builder.max_rot_vel;
-        RobotConstants.maxRotationalAcceleration = builder.max_rot_accel;
+        this.min_radius = builder.min_radius;
+        this.max_radius = builder.max_radius;
+        this.max_vel = builder.max_vel;
+        this.max_accel = builder.max_accel;
+        this.max_rot_vel = builder.max_rot_vel;
+        this.max_rot_accel = builder.max_rot_accel;
     }
 
     public WayPoint(WayPoint point) {
@@ -89,6 +102,12 @@ public class WayPoint {
         type = point.type;
         pose[2] = point.pose[2];
         threshold = point.threshold;
+        min_radius = point.min_radius;
+        max_radius = point.max_radius;
+        max_vel = point.max_vel;
+        max_accel = point.max_accel;
+        max_rot_vel = point.max_rot_vel;
+        max_rot_accel = point.max_rot_accel;
     }
 
     public Point toPoint() {
