@@ -10,13 +10,22 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.LaAuto.Features.BuilderFunctions;
+import org.firstinspires.ftc.teamcode.LaAuto.Features.DistanceSensorLocalizer;
 import org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.RobotMovement;
 import org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.WayPoint;
+import org.inventors.ftc.robotbase.hardware.DistanceSensorEx;
 
 import java.util.ArrayList;
 
 @Autonomous(name = "OpModeSample", group = "Auto")
 public class OpModeSample extends LinearOpMode {
+
+    private DistanceSensorLocalizer dist_localizer;
+
+    private DistanceSensorEx
+        rear_dist,
+        right_dist,
+        left_dist;
 
     private ArrayList <WayPoint> scenario_1 = new ArrayList <>();
 
@@ -45,6 +54,7 @@ public class OpModeSample extends LinearOpMode {
     @Override
     public void runOpMode() {
         new RobotMovement(hardwareMap);
+        dist_localizer = new DistanceSensorLocalizer(rear_dist, left_dist, right_dist);
 
         scenario_1.add(startingPose);
         scenario_1.add(submersible);
@@ -53,6 +63,8 @@ public class OpModeSample extends LinearOpMode {
 
         waitForStart();
 
+        followPath(scenario_1);
+        pose = new Pose2d(dist_localizer.calculateRealLocation(pose), pose.heading.toDouble());
         followPath(scenario_1);
     }
 }
