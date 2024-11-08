@@ -17,6 +17,7 @@ import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -45,17 +46,18 @@ public final class TwoDeadWheelLocalizer {
         // TODO: make sure your config has **motors** with these names (or change them)
         //   the encoders should be plugged into the slot matching the named motor
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        par = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "par")));
-        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "perp")));
+        par = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "rearRight")));
+        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "frontLeft")));
         imu = hardwareMap.get(IMU.class, "external_imu");
 
         // TODO: reverse encoder directions if needed
         //   par.setDirection(DcMotorSimple.Direction.REVERSE);
+        perp.setDirection(DcMotorSimple.Direction.REVERSE);
 
         RevHubOrientationOnRobot.LogoFacingDirection
-            logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
+            logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
         RevHubOrientationOnRobot.UsbFacingDirection
-            usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
+            usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.UP;
         RevHubOrientationOnRobot
             orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
         IMU.Parameters imu_parameters = new IMU.Parameters(orientationOnRobot);
@@ -80,7 +82,7 @@ public final class TwoDeadWheelLocalizer {
 
         YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
         AngularVelocity angularVelocityDegrees = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
-        currentRotationalVelocity = angularVelocityDegrees.zRotationRate;
+        currentRotationalVelocity = angularVelocityDegrees.xRotationRate;
         AngularVelocity angularVelocity = new AngularVelocity(
                 UnnormalizedAngleUnit.RADIANS,
                 (float) Math.toRadians(angularVelocityDegrees.xRotationRate),
@@ -91,7 +93,7 @@ public final class TwoDeadWheelLocalizer {
 
         Rotation2d heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS));
 
-        double rawHeadingVel = angularVelocity.zRotationRate;
+        double rawHeadingVel = angularVelocity.xRotationRate;
         if (Math.abs(rawHeadingVel - lastRawHeadingVel) > Math.PI) {
             headingVelOffset -= Math.signum(rawHeadingVel) * 2 * Math.PI;
         }

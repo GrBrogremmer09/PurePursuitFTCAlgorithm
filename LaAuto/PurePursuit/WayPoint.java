@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.LaAuto.PurePursuit;
 
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.maxAcceleration;
+import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.maxRadiusRange;
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.maxRotationalAcceleration;
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.maxRotationalVelocity;
-import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.minRadiusRange;
-import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.maxRadiusRange;
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.maxVelocity;
+import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.minRadiusRange;
 
 import org.opencv.core.Point;
 

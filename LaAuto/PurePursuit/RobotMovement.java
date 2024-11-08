@@ -6,13 +6,13 @@ import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.MathFunction.cal
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.MathFunction.calculateCircleIntersection;
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.MathFunction.positionEqualsThreshold;
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.MathFunction.rotationEqualsThreshold;
-
 import static java.lang.Math.abs;
 import static java.lang.Math.hypot;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -44,12 +44,13 @@ public class RobotMovement {
         currentMaxRadiusRange;
 
     public static DcMotor
-        frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor"),
-        backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor"),
-        frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor"),
-        backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+        frontLeftMotor = hardwareMap.dcMotor.get("frontLeft"),
+        backLeftMotor = hardwareMap.dcMotor.get("rearLeft"),
+        frontRightMotor = hardwareMap.dcMotor.get("frontRight"),
+        backRightMotor = hardwareMap.dcMotor.get("rearRight");
 
     public RobotMovement(HardwareMap hm) {
+
         localizer = new TwoDeadWheelLocalizer(hm);
         time = new ElapsedTime();
 
@@ -57,13 +58,16 @@ public class RobotMovement {
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     /**
      * The logic and final function to run the pure pursuit algorithm
      * @param points
      */
-    public static void followPath(ArrayList<WayPoint> points) {
+    public void followPath(ArrayList<WayPoint> points) {
 
         isFinished = false;
 
@@ -151,6 +155,7 @@ public class RobotMovement {
 
         double relativeTurnAngle = angleError - 180 + preferredAngle;
         // TODO: make sure relativeTurnAngle is between -180 and 180
+        // Not sure the - 180 is correct must check
 
         answer[0] = movementXPower * positionTargetVelocity;
         answer[1] = movementYPower * positionTargetVelocity;
