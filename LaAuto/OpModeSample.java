@@ -61,8 +61,10 @@ public class OpModeSample extends LinearOpMode {
 
         waitForStart();
 
-        rm.followPath(scenario_1);
-//        pose = new Pose2d(dist_localizer.calculateRealLocation(pose), pose.heading.toDouble());
-//        followPath(scenario_1);
+        while (opModeIsActive() && !isStopRequested()) {
+            rm.followPath(scenario_1);
+            //        pose = new Pose2d(dist_localizer.calculateRealLocation(pose), pose.heading.toDouble());
+            //        followPath(scenario_1);
+        }
     }
 }
