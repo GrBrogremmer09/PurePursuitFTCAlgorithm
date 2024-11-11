@@ -87,7 +87,7 @@ public class RobotMovement {
             pose = new Pose2d(pose.component1(),
                               Math.toDegrees(pose.heading.toDouble()));
 
-            for(int i = points.size() - 1; i >= 0; --i) {
+            for(int i = points.size() - 2; i >= 0; --i) {
                 start = points.get(i);
                 end = points.get(i + 1);
 

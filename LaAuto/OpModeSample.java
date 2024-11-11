@@ -24,6 +24,8 @@ public class OpModeSample extends LinearOpMode {
 //        right_dist,
 //        left_dist;
 
+    public RobotMovement rm;
+
     private ArrayList <WayPoint> scenario_1 = new ArrayList <>();
 
     private WayPoint
@@ -50,7 +52,7 @@ public class OpModeSample extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        RobotMovement rm = new RobotMovement(hardwareMap);
+        rm = new RobotMovement(hardwareMap);
 //        dist_localizer = new DistanceSensorLocalizer(rear_dist, left_dist, right_dist);
 
         scenario_1.add(startingPose);
