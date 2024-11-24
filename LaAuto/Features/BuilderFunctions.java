@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.LaAuto.Features;
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.robotX;
 import static org.firstinspires.ftc.teamcode.LaAuto.PurePursuit.HardwareRelated.RobotConstants.robotY;
 
+import com.acmerobotics.roadrunner.Pose2d;
+
 public class BuilderFunctions {
 
     // TODO: Use this as an base for a way point so that its faster and easier
@@ -10,15 +12,17 @@ public class BuilderFunctions {
 
         name = new WayPoint.WaypointBuilder(
             poseAdjuster(new double[] {
-                x * Tile, y * Tile, t
+                x * Tile, y * Tile, theta
             }, BuilderFunctions.RobotSides.FRONT
             ), WayPoint.WaypointType.DEFAULT
         ).max_radius(v).build()
 
     */
 
-    public static double
-        Tile = 24; /*-inches-*/
+    public static double /*-inches-*/
+        robotY = 15,
+        robotX = 15,
+        Tile = 24;
 
     public enum RobotSides {FRONT, REAR, CENTER, LEFT, RIGHT}
 
@@ -56,5 +60,35 @@ public class BuilderFunctions {
         }
 
         return new double[]{X, Y, H};
+    }
+
+    public static Pose2d poseAdjuster(Pose2d pose, RobotSides side) {
+        if (side == RobotSides.CENTER)
+            return pose;
+
+        double X = pose.position.x, Y = pose.position.y, H = pose.heading.toDouble(),
+            Afb = (robotY / 2) * Math.sin(H), Bfb = (robotY / 2) * Math.cos(H),
+            Arl = (robotX / 2) * Math.sin(H), Brl = (robotX / 2) * Math.cos(H);
+
+        switch (side) {
+            case FRONT:
+                X -= Bfb;
+                Y -= Afb;
+                break;
+            case REAR:
+                X += Bfb;
+                Y += Afb;
+                break;
+            case LEFT:
+                X += Arl;
+                Y -= Brl;
+                break;
+            default: // RIGHT
+                X -= Arl;
+                Y += Brl;
+                break;
+        }
+
+        return new Pose2d(X, Y, H);
     }
 }

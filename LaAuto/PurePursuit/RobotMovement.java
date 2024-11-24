@@ -12,6 +12,7 @@ import static java.lang.Math.hypot;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -24,8 +25,8 @@ import java.util.ArrayList;
 
 public class RobotMovement {
 
-    public static TwoDeadWheelLocalizer localizer;
-    public static ElapsedTime time;
+    private static TwoDeadWheelLocalizer localizer;
+    private static ElapsedTime time;
 
     public static volatile boolean isFinished;
 
@@ -43,11 +44,11 @@ public class RobotMovement {
         currentMinRadiusRange,
         currentMaxRadiusRange;
 
-    public static DcMotor
-        frontLeftMotor = hardwareMap.dcMotor.get("frontLeft"),
-        backLeftMotor = hardwareMap.dcMotor.get("rearLeft"),
-        frontRightMotor = hardwareMap.dcMotor.get("frontRight"),
-        backRightMotor = hardwareMap.dcMotor.get("rearRight");
+    private DcMotorEx
+        frontLeftMotor = hardwareMap.get(DcMotorEx.class,"frontLeft"),
+        backLeftMotor = hardwareMap.get(DcMotorEx.class,"rearLeft"),
+        frontRightMotor = hardwareMap.get(DcMotorEx.class,"frontRight"),
+        backRightMotor = hardwareMap.get(DcMotorEx.class,"rearRight");
 
     public RobotMovement(HardwareMap hm) {
 
@@ -76,18 +77,22 @@ public class RobotMovement {
         WayPoint followPoint = new WayPoint(points.get(0));
 
         WayPoint start =
-            new WayPoint.WaypointBuilder(new double[]{0,0,0}, WayPoint.WaypointType.DEFAULT).build();
+            new WayPoint.WaypointBuilder(new double[]{
+                0,0,0
+            }, WayPoint.WaypointType.DEFAULT).build();
+
         WayPoint end =
-            new WayPoint.WaypointBuilder(new double[]{0,0,0}, WayPoint.WaypointType.DEFAULT).build();
+            new WayPoint.WaypointBuilder(new double[]{
+                0,0,0
+            }, WayPoint.WaypointType.DEFAULT).build();
 
         while(!isFinished) {
-            time.startTime();
+            time.reset();
 
             pose = pose.plus(localizer.update().value());
-            pose = new Pose2d(pose.component1(),
-                              Math.toDegrees(pose.heading.toDouble()));
+            pose = new Pose2d(pose.component1(), Math.toDegrees(pose.heading.toDouble()));
 
-            for(int i = points.size() - 2; i >= 0; --i) {
+            for (int i = points.size() - 2; i >= 0; --i) {
                 start = points.get(i);
                 end = points.get(i + 1);
 
@@ -99,6 +104,9 @@ public class RobotMovement {
                 currentMaxRadiusRange = end.max_radius;
 
                 currentRadius = calculateRadius(getCurrentVelocity());
+
+                if (positionEqualsThreshold(new Point(pose.position.x, pose.position.y), end) &&
+                    rotationEqualsThreshold(pose.heading.toDouble(), end)) isFinished = true;
 
                 if (end.type == WayPoint.WaypointType.END) {
                     if (hypot(end.pose[0] - pose.position.x, end.pose[1] - pose.position.y) <= currentRadius) {
@@ -126,9 +134,6 @@ public class RobotMovement {
             rotationMotionProfiling(end);
 
             motorsPower = goToPoint(followPoint.pose[0], followPoint.pose[1], followPoint.pose[2]);
-
-            if (positionEqualsThreshold(new Point(pose.position.x, pose.position.y), end) &&
-                rotationEqualsThreshold(pose.heading.toDouble(), end)) isFinished = true;
 
             robotCentricMovement(motorsPower[0], motorsPower[1], motorsPower[2]);
         }
@@ -171,7 +176,7 @@ public class RobotMovement {
     public static void positionMotionProfiling(WayPoint endPoint) {
         Vector2d robotPosition = pose.position;
         double currentVelocity = getCurrentVelocity();
-        double currentTime = time.time();
+        double currentTime = time.seconds();
 
         if (currentMaxVelocity > currentVelocity) { // Acceleration condition
             positionTargetVelocity = (
@@ -203,7 +208,7 @@ public class RobotMovement {
      */
     public static void rotationMotionProfiling(WayPoint endPoint) {
         double currentVelocity = getCurrentRotationalVelocity();
-        double currentTime = time.time();
+        double currentTime = time.seconds();
 
         double distance = calculateAngleUnwrap(endPoint.pose[2] - pose.heading.toDouble());
         int directionMultiplier = 1;
@@ -247,7 +252,7 @@ public class RobotMovement {
     /**
      * Basic robot-centric movement
      */
-    public static void robotCentricMovement(double x, double y, double t) {
+    public void robotCentricMovement(double x, double y, double t) {
 
         // Denominator is the largest motor power (absolute value) or 1
         // This ensures all the powers maintain the same ratio,
